@@ -36,12 +36,18 @@ def render_sidebar() -> None:
 
 
 def render_ticker_section(ticker: str) -> None:
-    st.subheader(ticker)
-
-    period = st.selectbox(
-        "Period", ["1mo", "3mo", "6mo", "1y", "2y"],
-        index=2, key=f"period_{ticker}"
-    )
+    # Use columns for a compact header
+    col_header, col_period = st.columns([4, 1])
+    
+    with col_header:
+        st.subheader(ticker)
+    
+    with col_period:
+        period = st.selectbox(
+            "Period", ["1mo", "3mo", "6mo", "1y", "2y"],
+            index=2, key=f"period_{ticker}",
+            label_visibility="collapsed"
+        )
 
     try:
         df = fetch_history(ticker, period=period)
@@ -51,6 +57,7 @@ def render_ticker_section(ticker: str) -> None:
             mode="lines", name="Close",
             line=dict(color="#1f77b4", width=1.5),
         ))
+        
         alerts = get_alerts(st.session_state["config"], ticker)
         for level in alerts:
             fig.add_hline(
@@ -59,43 +66,46 @@ def render_ticker_section(ticker: str) -> None:
                 annotation_text=f"${level:.2f}",
                 annotation_position="right",
             )
+            
         fig.update_layout(
-            title=ticker,
-            xaxis_title="Date",
-            yaxis_title="Price (USD)",
-            height=350,
-            margin=dict(l=40, r=80, t=40, b=40),
+            height=300,  # Slightly shorter to fit more on screen
+            margin=dict(l=0, r=0, t=20, b=0),
+            xaxis_title=None,
+            yaxis_title=None,
+            hovermode="x unified"
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
     except Exception as e:
         st.error(f"Could not fetch data for {ticker}: {e}")
 
-    st.markdown("**Alert levels**")
-    alerts = get_alerts(st.session_state["config"], ticker)
-    if alerts:
-        for level in alerts:
-            col1, col2 = st.columns([4, 1])
-            col1.write(f"${level:.2f}")
-            if col2.button("Remove", key=f"rm_alert_{ticker}_{level}"):
-                st.session_state["config"] = remove_alert(st.session_state["config"], ticker, level)
+    # Hidden management component
+    with st.expander(f"⚙️ Manage {ticker} Alerts"):
+        st.markdown("**Current Alerts**")
+        alerts = get_alerts(st.session_state["config"], ticker)
+        if alerts:
+            for level in alerts:
+                c1, c2 = st.columns([4, 1])
+                c1.write(f"${level:.2f}")
+                if c2.button("Remove", key=f"rm_alert_{ticker}_{level}"):
+                    st.session_state["config"] = remove_alert(st.session_state["config"], ticker, level)
+                    save_config(st.session_state["config"])
+                    st.rerun()
+        else:
+            st.caption("No alerts defined.")
+
+        with st.form(f"add_alert_{ticker}", clear_on_submit=True):
+            new_level = st.number_input("Add price level", min_value=0.01, step=1.0, format="%.2f", key=f"alert_input_{ticker}")
+            if st.form_submit_button("Add Alert"):
+                st.session_state["config"] = add_alert(st.session_state["config"], ticker, new_level)
                 save_config(st.session_state["config"])
                 st.rerun()
-    else:
-        st.caption("No alerts defined yet.")
 
-    with st.form(f"add_alert_{ticker}", clear_on_submit=True):
-        new_level = st.number_input("New alert price", min_value=0.01, step=1.0, format="%.2f", key=f"alert_input_{ticker}")
-        if st.form_submit_button("Add Alert"):
-            st.session_state["config"] = add_alert(st.session_state["config"], ticker, new_level)
-            save_config(st.session_state["config"])
-            st.rerun()
-
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
 
 
 def main() -> None:
     st.set_page_config(page_title="Stock Alerts", layout="wide")
-    st.title("Stock Price Alerts")
+    st.title("Alerts")
 
     init_session_state()
     render_sidebar()

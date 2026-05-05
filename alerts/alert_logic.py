@@ -1,4 +1,4 @@
-PROXIMITY_THRESHOLD = 0.02
+PROXIMITY_THRESHOLD = 0.01
 
 
 def is_within_proximity(current: float, level: float, threshold: float = PROXIMITY_THRESHOLD) -> bool:

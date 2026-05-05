@@ -1,3 +1,4 @@
+import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -5,7 +6,7 @@ load_dotenv()
 from alerts.config_manager import load_config, get_tickers, get_alerts
 from alerts.price_fetcher import fetch_latest_closes, fetch_history
 from alerts.alert_logic import check_all_alerts
-from alerts.notifier import notify
+from alerts.notifier import notify, send_telegram
 
 
 def get_prev_prices(tickers: list) -> dict:
@@ -49,10 +50,12 @@ def main() -> None:
         print(f"\n{len(triggered)} alert(s) triggered:")
         for a in triggered:
             print(f"  {a['ticker']} @ ${a['current']:.2f} — {a['reason']} level ${a['level']:.2f}")
+        notify(triggered)
     else:
         print("\nNo alerts triggered.")
-
-    notify(triggered)
+        # Monday Heartbeat: If no alerts triggered on a Monday, send a status update.
+        if datetime.datetime.now().weekday() == 0:  # 0 is Monday
+            send_telegram("🔔 Stock Alert Service: Heartbeat (Monday). Monitoring is active and running.")
 
 
 if __name__ == "__main__":
