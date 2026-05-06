@@ -2,8 +2,13 @@ name: Check Stock Alerts
 
 on:
   schedule:
-    - cron: "0 9 * * 1-5"   # 9:00 AM UTC, Monday–Friday
-  workflow_dispatch:          # manual trigger from GitHub UI
+    - cron: "0 7,11 * * 1-5"   # 8:00 AM and 12:00 PM UK time (7:00 and 11:00 UTC)
+  workflow_dispatch:
+    inputs:
+      test_alert:
+        description: 'Set to "true" to force a test notification'
+        required: false
+        default: 'false'
 
 jobs:
   check-alerts:
@@ -28,4 +33,5 @@ jobs:
           GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           GMAIL_RECIPIENT: ${{ secrets.GMAIL_RECIPIENT }}
+          FORCE_ALERT: ${{ github.event.inputs.test_alert }}
         run: python check_alerts.py

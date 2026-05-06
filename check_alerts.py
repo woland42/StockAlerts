@@ -1,3 +1,4 @@
+import os
 import datetime
 from dotenv import load_dotenv
 
@@ -53,8 +54,14 @@ def main() -> None:
         notify(triggered)
     else:
         print("\nNo alerts triggered.")
+        
+        # Check for forced test alert
+        if os.environ.get("FORCE_ALERT") == "true":
+            print("Forcing test notification...")
+            send_telegram("🔔 Stock Alert Service: Test notification. Your monitoring system is working!")
+
         # Monday Heartbeat: If no alerts triggered on a Monday, send a status update.
-        if datetime.datetime.now().weekday() == 0:  # 0 is Monday
+        elif datetime.datetime.now().weekday() == 0:  # 0 is Monday
             send_telegram("🔔 Stock Alert Service: Heartbeat (Monday). Monitoring is active and running.")
 
 
