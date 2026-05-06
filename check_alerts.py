@@ -56,12 +56,16 @@ def main() -> None:
         print("\nNo alerts triggered.")
         
         # Check for forced test alert
-        if os.environ.get("FORCE_ALERT") == "true":
+        force_val = os.environ.get("FORCE_ALERT")
+        print(f"DEBUG: FORCE_ALERT value is: '{force_val}'")
+        if force_val == "true":
             print("Forcing test notification...")
-            send_telegram("🔔 Stock Alert Service: Test notification. Your monitoring system is working!")
+            success = send_telegram("🔔 Stock Alert Service: Test notification. Your monitoring system is working!")
+            print(f"DEBUG: send_telegram success: {success}")
 
         # Monday Heartbeat: If no alerts triggered on a Monday, send a status update.
         elif datetime.datetime.now().weekday() == 0:  # 0 is Monday
+            print("DEBUG: Sending Monday heartbeat...")
             send_telegram("🔔 Stock Alert Service: Heartbeat (Monday). Monitoring is active and running.")
 
 
