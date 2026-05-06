@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from alerts.config_manager import load_config, get_tickers, get_alerts
+from alerts.config_manager import load_config, get_tickers, get_alerts, remove_alert, save_config
 from alerts.price_fetcher import fetch_latest_closes, fetch_history
 from alerts.alert_logic import check_all_alerts
 from alerts.notifier import notify, send_telegram
@@ -51,7 +51,13 @@ def main() -> None:
         print(f"\n{len(triggered)} alert(s) triggered:")
         for a in triggered:
             print(f"  {a['ticker']} @ ${a['current']:.2f} — {a['reason']} level ${a['level']:.2f}")
-        notify(triggered)
+        
+        if notify(triggered):
+            print("Cleaning up triggered alerts from config...")
+            for a in triggered:
+                remove_alert(config, a["ticker"], a["level"])
+            save_config(config)
+            print("Config updated successfully.")
     else:
         print("\nNo alerts triggered.")
         

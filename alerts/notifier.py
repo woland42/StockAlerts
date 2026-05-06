@@ -63,14 +63,15 @@ def send_gmail(message: str) -> bool:
         return False
 
 
-def notify(triggered: list) -> None:
+def notify(triggered: list) -> bool:
     if not triggered:
-        return
+        return False
     message = format_alert_message(triggered)
     if send_telegram(message):
         print("Notification sent via Telegram.")
-        return
+        return True
     if send_gmail(message):
         print("Notification sent via Gmail.")
-        return
+        return True
     print("Notification failed: both Telegram and Gmail failed.")
+    return False
