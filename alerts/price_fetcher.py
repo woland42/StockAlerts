@@ -1,7 +1,9 @@
 import yfinance as yf
 import pandas as pd
+import streamlit as st
 
 
+@st.cache_data(ttl=3600)
 def fetch_history(ticker: str, period: str = "6mo") -> pd.DataFrame:
     df = yf.Ticker(ticker).history(period=period)
     if df.empty:

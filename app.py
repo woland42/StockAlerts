@@ -74,7 +74,7 @@ def render_ticker_section(ticker: str) -> None:
             yaxis_title=None,
             hovermode="x unified"
         )
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig, width='stretch', config={'displayModeBar': False, 'staticPlot': True})
     except Exception as e:
         st.error(f"Could not fetch data for {ticker}: {e}")
 
